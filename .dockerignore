@@ -1,0 +1,4 @@
+# Ignoring everything
+*
+
+!khinsider_dl/*.py

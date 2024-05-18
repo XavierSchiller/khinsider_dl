@@ -1,0 +1,10 @@
+[project]
+name = "khinsider_dl"
+version = "0.0.1"
+dependencies = [
+    "beautifulsoup4==4.12.3",
+    "requests==2.31.0",
+]
+
+[tool.isort]
+profile = "black"
