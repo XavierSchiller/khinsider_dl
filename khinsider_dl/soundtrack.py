@@ -5,12 +5,7 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup, NavigableString, Tag
 
-from .consoleutils import printerr
-from .errors import (
-    NonexistentFormatsError,
-    NonexistentSongError,
-    NonexistentSoundtrackError,
-)
+from .errors import NonexistentFormatsError, NonexistentSoundtrackError
 from .file import File
 from .song import Song
 
@@ -31,7 +26,6 @@ class Soundtrack:
     def __repr__(self):
         return "<{}: {}>".format(self.__class__.__name__, self.url)
 
-    @cached_property
     def _contentSoup(self) -> Tag:
         contentSoup = self._page_content.find(id="pageContent")
 
@@ -48,18 +42,8 @@ class Soundtrack:
 
         return contentSoup
 
-    @cached_property
-    def get_name(self):
-        inner_name = self._contentSoup.find("h2")
-
-        if inner_name is None:
-            raise NonexistentSoundtrackError(self)
-
-        return next(inner_name.stripped_strings)
-
-    @cached_property
     def get_available_formats(self) -> List[str]:
-        table = self._contentSoup.find("table", id="songlist")
+        table = self._contentSoup().find("table", id="songlist")
 
         if table is None or isinstance(table, NavigableString):
             raise NonexistentSoundtrackError(self)
@@ -78,8 +62,7 @@ class Soundtrack:
         formats = formats or ["mp3"]
         return formats
 
-    @cached_property
-    def get_songs(self):
+    def get_songs(self) -> List[Song]:
         table = self._contentSoup.find("table", id="songlist")
 
         if table is None or isinstance(table, NavigableString):
@@ -102,8 +85,7 @@ class Soundtrack:
         songs = [Song(urljoin(self.url, url)) for url in url_list]
         return songs
 
-    @cached_property
-    def get_images(self):
+    def get_images(self) -> List[File]:
         table = self._contentSoup.find("table")
 
         if table is None or isinstance(table, NavigableString):
@@ -121,7 +103,6 @@ class Soundtrack:
                     image_urls.append(url)
 
         images = [File(urljoin(self.url, url)) for url in image_urls]
-        print(images)
         return images
 
     def get_files_to_download(
@@ -135,24 +116,19 @@ class Soundtrack:
         example, FLAC files will be downloaded if available - if not, Ogg
         files, and if those aren't available, MP3 files.
 
-        Print progress along the way if `verbose` is set to True.
-
         Returns a `list[File]` of files that can be downloaded
         """
 
         if len(formatOrder) > 0:
             formatOrder = [extension.lower() for extension in formatOrder]
-            if not set(self.get_available_formats) & set(formatOrder):
+            if not set(self.get_available_formats()) & set(formatOrder):
                 raise NonexistentFormatsError(self, formatOrder)
 
-        print("Getting song list...")
-
-        for song in self.get_songs:
-            try:
-                yield song.get_appropriate_file(http_client, formatOrder)
-            except NonexistentSongError:
-                printerr("Files do not exist for song: {}".format(song.name))
+        for song in self.get_songs():
+            song_file = song.get_appropriate_file(http_client, formatOrder)
+            if song_file is not None:
+                yield song_file
 
         # Image files to also be returned here
-        for file in self.get_images:
+        for file in self.get_images():
             yield file

@@ -75,10 +75,10 @@ def main():
     try:
         arguments = parser.parse_args(namespace=KHInsiderParsedArguments)
     except InvalidPathError as error_instance:
-        printerr(str(error_instance))
+        print(str(error_instance), file=sys.stderr)
         sys.exit(1)
     except ValueError as error_instance:
-        printerr(str(error_instance))
+        print(str(error_instance), file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -89,8 +89,9 @@ def main():
             formatOrder=arguments.format_list,
         )
     except NonexistentSoundtrackError:
-        printerr(
-            'The soundtrack "{}" does not seem to exist.'.format(arguments.input_url)
+        print(
+            'The soundtrack "{}" does not seem to exist.'.format(arguments.input_url),
+            file=sys.stderr,
         )
 
         return 1
@@ -109,13 +110,13 @@ def main():
                 formats[-1],
             )
 
-        printerr(s)
+        print(s, file=sys.stderr)
 
         return 1
     except InterruptedError | KeyboardInterrupt:
-        printerr("Interupted! Stopped download...")
+        print("Interupted! Stopped download...", file=sys.stderr)
     except (requests.ConnectionError, requests.Timeout):
-        printerr("Could not connect to KHInsider.")
+        print("Could not connect to KHInsider.", file=sys.stderr)
 
     return 0
 

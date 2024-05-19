@@ -85,5 +85,5 @@ class KHInsiderParser(argparse.ArgumentParser):
         )
 
     def error(self, message):
-        printerr(message)
+        print(message, file=sys.stderr)
         sys.exit(1)
