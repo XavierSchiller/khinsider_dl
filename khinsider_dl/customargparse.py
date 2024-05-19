@@ -4,28 +4,17 @@ import pathlib
 import sys
 from typing import List
 
-from .consoleutils import printerr
 from .constants import URL_REGEX
 from .errors import InvalidPathError
 
-SCRIPT_DESCRIPTION = """
-Download entire soundtracks from KHInsider.\n\n"
-Examples:
-%(prog)s jumping-flash
-%(prog)s katamari-forever "music{}Katamari Forever OST"
-%(prog)s --search persona
-%(prog)s --format flac mother-3"
-""".format(
-    os.sep
-).strip(
-    "\n\r"
-)
+SCRIPT_DESCRIPTION = "Downloads or lists entire soundtracks from KHInsider"
 
 
 class KHInsiderParsedArguments(argparse.Namespace):
     input_url: str
     output_directory: pathlib.Path
     format_list: List[str]
+    list_file_urls: bool
 
 
 def _parse_input_url(url_string: str) -> str:
@@ -55,10 +44,15 @@ def _parse_format_list(song_format: str):
 class KHInsiderParser(argparse.ArgumentParser):
 
     def create_arguments(self):
+        self.prog = "python -m khinsider_dl"
         self.description = SCRIPT_DESCRIPTION
 
         self.add_argument(
-            "-i", "--input_url", help="URL of the soundtrack.", type=_parse_input_url
+            "-i",
+            "--input_url",
+            help="URL of the soundtrack.",
+            type=_parse_input_url,
+            metavar="url",
         )
 
         self.add_argument(
@@ -66,6 +60,7 @@ class KHInsiderParser(argparse.ArgumentParser):
             "--output_directory",
             help=("The directory to download the soundtrack to."),
             type=_parse_output_path,
+            metavar="outdir"
         )
 
         self.add_argument(
@@ -74,9 +69,9 @@ class KHInsiderParser(argparse.ArgumentParser):
             default=None,
             metavar="...",
             help=(
-                "The file format in which to download"
+                "The file format in which to download "
                 "the soundtrack (e.g. 'flac').\n"
-                "You can also specify this argument"
+                "You can also specify this argument "
                 "multiple times to select the order of favour"
                 "(for example, -f flac -f mp3 -f ogg)"
             ),
@@ -84,6 +79,14 @@ class KHInsiderParser(argparse.ArgumentParser):
             type=_parse_format_list,
         )
 
+        self.add_argument(
+            "-l",
+            "--list_file_urls",
+            default=False,
+            help=("Indicates to output the song list instead of downloading"),
+            action=argparse.BooleanOptionalAction,
+        )
+
     def error(self, message):
-        printerr(message)
+        print(message, file=sys.stderr)
         sys.exit(1)

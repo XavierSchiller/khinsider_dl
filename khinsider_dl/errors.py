@@ -2,10 +2,6 @@ class KhinsiderError(Exception):
     pass
 
 
-class SearchError(KhinsiderError):
-    pass
-
-
 class NonexistentSongError(KhinsiderError):
     pass
 

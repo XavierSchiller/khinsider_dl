@@ -4,7 +4,8 @@ import urllib.parse
 
 import requests
 
-from .consoleutils import printerr
+from khinsider_dl.result import DownloadResult
+
 from .dlutils import to_valid_filename
 
 
@@ -22,29 +23,26 @@ class File:
         self.filename = urllib.parse.unquote(url.rsplit(str("/"), 1)[-1])
 
     def __repr__(self):
-        return "<{}: {}>".format(self.__class__.__name__, self.url)
+        return "<File: {}>".format(self.filename)
 
     def download(
         self,
         http_client: requests.Session,
         path: str | os.PathLike,
-    ) -> bool:
+    ) -> DownloadResult:
 
         filename = to_valid_filename(self.filename)
         path = os.path.join(path, filename)
 
         if os.path.exists(path):
-            print("Skipping {}, Already exists".format(filename))
-
-        print("Downloading {}...".format(filename))
+            return DownloadResult.FileExists
 
         try:
             response = http_client.get(self.url, timeout=10)
         except requests.ConnectionError:
-            printerr("Connection failed, check network connectivity.")
-            return False
+            return DownloadResult.ConnectionFailed
 
         with open(path, "wb") as out_file:
             out_file.write(response.content)
 
-        return True
+        return DownloadResult.DownloadSuccess
