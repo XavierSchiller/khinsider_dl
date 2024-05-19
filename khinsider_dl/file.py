@@ -23,7 +23,7 @@ class File:
         self.filename = urllib.parse.unquote(url.rsplit(str("/"), 1)[-1])
 
     def __repr__(self):
-        return "<File: {}>".format(self.__class__.__name__, self.filename)
+        return "<File: {}>".format(self.filename)
 
     def download(
         self,

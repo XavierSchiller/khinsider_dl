@@ -1,4 +1,3 @@
-from functools import cached_property
 from typing import Generator, List
 from urllib.parse import urljoin
 
@@ -63,7 +62,7 @@ class Soundtrack:
         return formats
 
     def get_songs(self) -> List[Song]:
-        table = self._contentSoup.find("table", id="songlist")
+        table = self._contentSoup().find("table", id="songlist")
 
         if table is None or isinstance(table, NavigableString):
             raise NonexistentSoundtrackError(self)
@@ -86,7 +85,7 @@ class Soundtrack:
         return songs
 
     def get_images(self) -> List[File]:
-        table = self._contentSoup.find("table")
+        table = self._contentSoup().find("table")
 
         if table is None or isinstance(table, NavigableString):
             # Currently, the table is always present, but if it's ever removed
